@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\v1\AuthControlller;
 use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\ProductController;
+use App\Http\Controllers\Api\v1\ShoppingCartController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,5 +34,10 @@ Route::prefix('v1')->group( function () {
         Route::get('/{id}', [OrderController::class, 'show']);
     });
 
+    // Shopping Cart Routes
+    Route::prefix('cart')->middleware('auth:sanctum')->group(function () {
+        Route::get('/cart', [ShoppingCartController::class, 'getCart']); // Obtener carrito
+        Route::delete('/cart', [ShoppingCartController::class, 'clearCart']); // Vaciar carrito
+    });
 });
 

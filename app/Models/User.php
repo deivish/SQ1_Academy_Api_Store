@@ -56,4 +56,24 @@ class User extends Authenticatable
     {
         return $this->hasMany(Order::class, 'user_id', 'id');
     }
+
+    /**
+     * Get the shopping cart for the user.
+     */
+    public function shoppingCart()
+    {
+        return $this->hasOne(ShoppingCart::class);
+    }
+
+    /**
+     * Create a shopping cart for the user when registering.
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::created(function ($user) {
+            $user->shoppingCart()->create();
+        });
+    }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api\v1;
 
 use App\Models\User;
+use App\Models\ShoppingCart;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -24,6 +25,18 @@ class AuthControlller extends Controller
             'email' => $validatedData['email'],
             'password' => Hash::make($validatedData['password']) //Encrypt password
         ]);
+
+        // Creación del carrito de compras asociado al usuario
+        $cart = ShoppingCart::where('user_id', $user->id)
+                    ->where('status', 'active')
+                    ->first();
+
+        if (!$cart) {
+            $cart = ShoppingCart::create([
+                'user_id' => $user->id,
+                'status' => 'active'
+            ]);
+        }
 
         return response()->json(
             [
