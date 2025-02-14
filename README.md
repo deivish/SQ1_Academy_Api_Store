@@ -59,15 +59,15 @@ php artisan serve
 
 * GET /api/products - Obtener todos los productos
 
-*POST /api/products - Crear un nuevo producto
+* POST /api/products - Crear un nuevo producto
 
-*GET /api/products/{id} - Obtener detalles de un producto específico
+* GET /api/products/{id} - Obtener detalles de un producto específico
 
-*PUT /api/products/{id} - Actualizar un producto
+* PUT /api/products/{id} - Actualizar un producto
 
-*DELETE /api/products/{id} - Eliminar un producto
+* DELETE /api/products/{id} - Eliminar un producto
 
-##🔹 Carrito de Compras
+## 🔹 Carrito de Compras
 
 * GET /api/shoppingcart - Obtener el carrito del usuario autenticado
 
@@ -75,7 +75,7 @@ php artisan serve
 
 * DELETE /api/shoppingcart - Vaciar el carrito
 
-##🔹 Elementos del Carrito
+## 🔹 Elementos del Carrito
 
 * POST /api/cartitems - Agregar un producto al carrito
 
