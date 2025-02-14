@@ -73,7 +73,9 @@ class User extends Authenticatable
         parent::boot();
 
         static::created(function ($user) {
-            $user->shoppingCart()->create();
+            if (!$user->shoppingCart()->exists()) {  // Solo si no tiene uno
+                $user->shoppingCart()->create();
+            }
         });
     }
 }

@@ -16,7 +16,7 @@ return new class extends Migration
             $table->foreignId('cart_id')->constrained('shopping_carts')->onDelete('cascade'); 
             $table->foreignId('variant_id')->constrained('product_variants')->onDelete('cascade'); 
             $table->integer('quantity')->default(1);
-            $table->decimal('unit_price', 10, 2);
+            $table->decimal('unit_price', 10, 2)->notNullable();
             $table->timestamps();
         });
     }

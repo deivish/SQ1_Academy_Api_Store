@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\v1\AuthControlller;
 use App\Http\Controllers\Api\v1\OrderController;
 use App\Http\Controllers\Api\v1\ProductController;
 use App\Http\Controllers\Api\v1\ShoppingCartController;
+use App\Http\Controllers\Api\v1\CartItemController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -36,8 +37,16 @@ Route::prefix('v1')->group( function () {
 
     // Shopping Cart Routes
     Route::prefix('cart')->middleware('auth:sanctum')->group(function () {
-        Route::get('/cart', [ShoppingCartController::class, 'getCart']); // Obtener carrito
-        Route::delete('/cart', [ShoppingCartController::class, 'clearCart']); // Vaciar carrito
+        Route::get('/', [ShoppingCartController::class, 'getCart']); 
+        Route::delete('/', [ShoppingCartController::class, 'clearCart']);
+
+    // Rutas para CartItemController
+        Route::get('/items', [CartItemController::class, 'index']); // Listar ítems en el carrito
+        Route::post('/items', [CartItemController::class, 'store']); // Agregar producto al carrito
+        Route::put('/items/{id}', [CartItemController::class, 'update']); // Actualizar cantidad
+        Route::delete('/items/{id}', [CartItemController::class, 'destroy']); // Eliminar producto
     });
+
+    
 });
 

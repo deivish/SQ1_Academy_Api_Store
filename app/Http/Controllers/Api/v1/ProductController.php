@@ -54,9 +54,10 @@ class ProductController extends Controller
      */
     public function show(int $id)
     {
+        
         try {
             //Get a product by ID
-            $product = Product::findOrFail($id);
+            $product = Product::with('variants')->find($id);
             return response()->json($product, 200);
         } catch(ModelNotFoundException $e) {
 
