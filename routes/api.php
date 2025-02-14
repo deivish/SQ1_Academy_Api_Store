@@ -32,7 +32,10 @@ Route::prefix('v1')->group( function () {
     //orders
     Route::prefix('orders')->middleware('auth:sanctum')->group(function () {
         Route::get('/', [OrderController::class, 'index']);
+        Route::post('/', [OrderController::class, 'store']);
         Route::get('/{id}', [OrderController::class, 'show']);
+        Route::put('/{id}', [OrderController::class, 'update']); 
+    Route::delete('/{id}', [OrderController::class, 'destroy']);
     });
 
     // Shopping Cart Routes
@@ -41,10 +44,10 @@ Route::prefix('v1')->group( function () {
         Route::delete('/', [ShoppingCartController::class, 'clearCart']);
 
     // Rutas para CartItemController
-        Route::get('/items', [CartItemController::class, 'index']); // Listar ítems en el carrito
-        Route::post('/items', [CartItemController::class, 'store']); // Agregar producto al carrito
-        Route::put('/items/{id}', [CartItemController::class, 'update']); // Actualizar cantidad
-        Route::delete('/items/{id}', [CartItemController::class, 'destroy']); // Eliminar producto
+        Route::get('/items', [CartItemController::class, 'index']); 
+        Route::post('/items', [CartItemController::class, 'store']); 
+        Route::put('/items/{id}', [CartItemController::class, 'update']); 
+        Route::delete('/items/{id}', [CartItemController::class, 'destroy']); 
     });
 
     
