@@ -7,9 +7,10 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-#API de Gestión de Órdenes de Compra
+# API de Gestión de Órdenes de Compra
 
 Esta es una API desarrollada en Laravel para la gestión de órdenes de compra. Permite a los usuarios autenticados realizar pedidos, gestionar productos, administrar carritos de compras, consultar órdenes, actualizar su estado y manejar los métodos de pago y direcciones de envío.
+
 ## 🚀 Instalación
 ## 1. Clonar el repositorio
 ```
@@ -33,30 +34,30 @@ php artisan migrate
 ```
 php artisan serve
 ```
-#📌 Rutas Principales de la API
+# 📌 Rutas Principales de la API
 
-##🔹 Autenticación
-*POST /api/login - Iniciar sesión
+## 🔹 Autenticación
+* POST /api/login - Iniciar sesión
 
-*POST /api/register - Registrar un usuario
+* POST /api/register - Registrar un usuario
 
-*POST /api/logout - Cerrar sesión
+* POST /api/logout - Cerrar sesión
 
-##Órdenes
+## Órdenes
 
-*GET /api/orders - Obtener todas las órdenes del usuario autenticado
+* GET /api/orders - Obtener todas las órdenes del usuario autenticado
 
-*POST /api/orders - Crear una nueva orden
+* POST /api/orders - Crear una nueva orden
 
-*GET /api/orders/{id} - Obtener detalles de una orden específica
+* GET /api/orders/{id} - Obtener detalles de una orden específica
 
-*PUT /api/orders/{id} - Actualizar una orden
+* PUT /api/orders/{id} - Actualizar una orden
 
-*DELETE /api/orders/{id} - Eliminar una orden
+* DELETE /api/orders/{id} - Eliminar una orden
 
-#🔹 Productos
+# 🔹 Productos
 
-*GET /api/products - Obtener todos los productos
+* GET /api/products - Obtener todos los productos
 
 *POST /api/products - Crear un nuevo producto
 
@@ -68,29 +69,29 @@ php artisan serve
 
 ##🔹 Carrito de Compras
 
-*GET /api/shoppingcart - Obtener el carrito del usuario autenticado
+* GET /api/shoppingcart - Obtener el carrito del usuario autenticado
 
-*POST /api/shoppingcart - Crear un carrito (opcional, si no se genera automáticamente)
+* POST /api/shoppingcart - Crear un carrito (opcional, si no se genera automáticamente)
 
-*DELETE /api/shoppingcart - Vaciar el carrito
+* DELETE /api/shoppingcart - Vaciar el carrito
 
 ##🔹 Elementos del Carrito
 
-*POST /api/cartitems - Agregar un producto al carrito
+* POST /api/cartitems - Agregar un producto al carrito
 
-*PUT /api/cartitems/{id} - Actualizar la cantidad de un producto en el carrito
+* PUT /api/cartitems/{id} - Actualizar la cantidad de un producto en el carrito
 
-*DELETE /api/cartitems/{id} - Eliminar un producto del carrito
-##🔐 Middleware y Seguridad
+* DELETE /api/cartitems/{id} - Eliminar un producto del carrito
+## 🔐 Middleware y Seguridad
 
-*Uso de auth:sanctum para proteger rutas
+* Uso de auth:sanctum para proteger rutas
 
-*Políticas de acceso con Gate para restringir acciones a los dueños de las órdenes
+* Políticas de acceso con Gate para restringir acciones a los dueños de las órdenes
 
-##🛠 Herramientas Utilizadas
+## 🛠 Herramientas Utilizadas
 
-*Framework: Laravel 10
+* Framework: Laravel 10
 
-*Base de Datos: SQLite
+* Base de Datos: SQLite
 
-*Autenticación: Laravel Sanctum
+* Autenticación: Laravel Sanctum
