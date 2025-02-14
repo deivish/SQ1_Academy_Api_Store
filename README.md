@@ -7,60 +7,90 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+#API de Gestión de Órdenes de Compra
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+Esta es una API desarrollada en Laravel para la gestión de órdenes de compra. Permite a los usuarios autenticados realizar pedidos, gestionar productos, administrar carritos de compras, consultar órdenes, actualizar su estado y manejar los métodos de pago y direcciones de envío.
+## 🚀 Instalación
+## 1. Clonar el repositorio
+```
+git clone https://github.com/deivish/SQ1_Academy_Api_Store
+cd nombre-del-proyecto
+```
+## 2. Instalar dependencias
+```
+composer install
+```
+## 3. Configurar el archivo .env
+Copia el archivo de ejemplo y edítalo según tu configuración local:
+```
+cp .env.example .env
+```
+## 4. Ejecutar las migraciones
+```
+php artisan migrate
+```
+## 5. Iniciar el servidor
+```
+php artisan serve
+```
+#📌 Rutas Principales de la API
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+##🔹 Autenticación
+*POST /api/login - Iniciar sesión
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+*POST /api/register - Registrar un usuario
 
-## Learning Laravel
+*POST /api/logout - Cerrar sesión
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+##Órdenes
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+*GET /api/orders - Obtener todas las órdenes del usuario autenticado
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+*POST /api/orders - Crear una nueva orden
 
-## Laravel Sponsors
+*GET /api/orders/{id} - Obtener detalles de una orden específica
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+*PUT /api/orders/{id} - Actualizar una orden
 
-### Premium Partners
+*DELETE /api/orders/{id} - Eliminar una orden
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+#🔹 Productos
 
-## Contributing
+*GET /api/products - Obtener todos los productos
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+*POST /api/products - Crear un nuevo producto
 
-## Code of Conduct
+*GET /api/products/{id} - Obtener detalles de un producto específico
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+*PUT /api/products/{id} - Actualizar un producto
 
-## Security Vulnerabilities
+*DELETE /api/products/{id} - Eliminar un producto
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+##🔹 Carrito de Compras
 
-## License
+*GET /api/shoppingcart - Obtener el carrito del usuario autenticado
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+*POST /api/shoppingcart - Crear un carrito (opcional, si no se genera automáticamente)
+
+*DELETE /api/shoppingcart - Vaciar el carrito
+
+##🔹 Elementos del Carrito
+
+*POST /api/cartitems - Agregar un producto al carrito
+
+*PUT /api/cartitems/{id} - Actualizar la cantidad de un producto en el carrito
+
+*DELETE /api/cartitems/{id} - Eliminar un producto del carrito
+##🔐 Middleware y Seguridad
+
+*Uso de auth:sanctum para proteger rutas
+
+*Políticas de acceso con Gate para restringir acciones a los dueños de las órdenes
+
+##🛠 Herramientas Utilizadas
+
+*Framework: Laravel 10
+
+*Base de Datos: SQLite
+
+*Autenticación: Laravel Sanctum
