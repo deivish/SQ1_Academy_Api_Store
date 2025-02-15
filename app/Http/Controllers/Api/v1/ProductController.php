@@ -30,12 +30,18 @@ class ProductController extends Controller
              */
             $products = Product::with('variants')->paginate($perPage);
 
+            $products->transform(function ($product) {
+                $product->other_attributes = json_decode($product->other_attributes, true);
+                return $product;
+            });
+
             //If there are no products in the database we return a 404.
             if($products->isEmpty()) {
                 return response()->json(["message" => "Products Not Found"], 404);
             }
 
             return response()->json($products, 200);
+            
         } catch(\Throwable $th) {
             
             \Log::error('Error Getting products: ' . $th->getMessage(), [
@@ -58,6 +64,9 @@ class ProductController extends Controller
         try {
             //Get a product by ID
             $product = Product::with('variants')->find($id);
+
+            $product->other_attributes = json_decode($product->other_attributes, true);
+
             return response()->json($product, 200);
         } catch(ModelNotFoundException $e) {
 
@@ -82,6 +91,8 @@ class ProductController extends Controller
         \DB::beginTransaction();
 
         try {
+
+            $request['other_attributes'] = json_encode($request['other_attributes']);
 
             //Save product to database.
             $productData = $request->only(['name', 'description', 'price', 'other_attributes']);
@@ -190,6 +201,11 @@ class ProductController extends Controller
 
 
         $products = $query->paginate();
+
+        $products->getCollection()->transform(function ($product) {
+            $product->other_attributes = json_decode($product->other_attributes, true);
+            return $product;
+        });
 
         return response()->json( $products, 200);
     }
