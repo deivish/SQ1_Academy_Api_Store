@@ -199,6 +199,13 @@ class ProductController extends Controller
             });
         }
 
+        if ($request->has('size')) {
+            $size = $request->input('size');
+            $query->whereHas('variants', function (Builder $q) use ($size) {
+                $q->where('size', $size);
+            });
+        }
+
 
         $products = $query->paginate();
 
