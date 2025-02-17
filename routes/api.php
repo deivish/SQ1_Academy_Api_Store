@@ -26,6 +26,7 @@ Route::prefix('v1')->group( function () {
         Route::get('/{id}', [ProductController::class, 'show']);
         Route::post('/', [ProductController::class, 'store']);
         Route::put('/{id}', [ProductController::class, 'update']);
+        Route::put('/{id}/variants/{variant_id}', [ProductController::class, 'updateVariant']);
         Route::delete('/{id}', [ProductController::class, 'destroy']);
     });
 

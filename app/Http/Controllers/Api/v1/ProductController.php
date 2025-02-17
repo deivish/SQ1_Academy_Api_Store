@@ -84,75 +84,152 @@ class ProductController extends Controller
         try {
 
             //Save product to database.
-            $productData = $request->only(['name', 'description', 'price', 'other_attributes']);
-            $product = Product::create($productData);
-    
-           // Save the associated variants
-            if ($request->has('variants')) {
-                $variants = $request->input('variants');
-                foreach ($variants as $variant) {
-                    $variant['product_id'] = $product->id; // Associate the product
-                    ProductVariant::create($variant);
+            $product = Product::findOrFail($id);
+
+        // Actualizar los datos del producto
+        $product->update($request->only(['name', 'description', 'price', 'other_attributes']));
+
+        // Manejo de variantes del producto
+        if ($request->has('variants')) {
+            $variantIds = [];
+            foreach ($request->input('variants') as $variantData) {
+                if (isset($variantData['id'])) {
+                    // Actualizar variante existente
+                    $variant = ProductVariant::where('id', $variantData['id'])
+                                            ->where('product_id', $id)
+                                            ->first();
+                    if ($variant) {
+                        $variant->update($variantData);
+                        $variantIds[] = $variant->id; // Guardar los IDs actualizados
+                    }
+                } else {
+                    // Crear nueva variante
+                    $variantData['product_id'] = $id;
+                    $newVariant = ProductVariant::create($variantData);
+                    $variantIds[] = $newVariant->id; // Guardar el nuevo ID
                 }
             }
-    
-            //If no error has occurred, the transaction for product and the transaction for variants are saved.
-            \DB::commit();
-    
-            return response()->json($product->load('variants'), 201); // Return the product with the variants
-        } catch (\Exception $e) {
-            //If an error occurs, no information is saved in the database for either the product or the variants.
-            \DB::rollBack();
 
-            \Log::error('Error creating product and variants: ' . $e->getMessage(), [
-                'stack' => $e->getTraceAsString(),
-                'input' => $request->all()
-            ]);
-    
-            return response()->json(['error' => 'Failed to create product'], 500);
+            // Opcional: Eliminar variantes que no están en la nueva lista
+            ProductVariant::where('product_id', $id)
+                        ->whereNotIn('id', $variantIds)
+                        ->delete();
+        }
+
+        \DB::commit();
+        return response()->json($product->load('variants'), 200);
+
+    } catch (ModelNotFoundException $e) {
+        \DB::rollBack();
+        \Log::error('Product not found: ' . $e->getMessage(), ['product_id' => $id]);
+        return response()->json(['error' => 'Product not found'], 404);
+    } catch (\Throwable $th) {
+        \DB::rollBack();
+        \Log::error('Error updating product: ' . $th->getMessage(), ['input' => $request->all()]);
+        return response()->json(['error' => 'Failed to update product'], 500);
         }
     }
 
     /**
-     * Post Method: Update Product
+     * Put Method: Update Product
      */
     public function update(Request $request, int $id)
     {
+        \DB::beginTransaction();
+
         try {
             
-            //Find Product in Database.
+             // Find Product in Database.
             $product = Product::findOrFail($id);
 
-            //Update the product found with the data sent in the body of the request.
-            $product->update($request->all());
-            return response()->json($product, 200);
-        } catch (ModelNotFoundException $e) {
+            // Actualizar los datos del producto
+            $product->update($request->only(['name', 'description', 'price', 'other_attributes']));
+
+            // Confirmar los cambios
+            \DB::commit();
 
             return response()->json([
-                'error' => 'Product not found',
-                'message' => $e->getMessage()
-            ], 404);
-
-        } catch (\Throwable $th) {
+                'message' => 'Producto actualizado correctamente',
+                'product' => $product
+            ], 200);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error al actualizar el producto: ' . $e->getMessage());
 
             return response()->json([
-                'error' => 'Error Getting products',
-                'message' => $th->getMessage()
+                'message' => 'Error al actualizar el producto',
+                'error' => $e->getMessage()
             ], 500);
         }
     }
+
+    /**
+     * Put Method: Update Product Variant By Id
+     */
+
+    public function updateVariant(Request $request, int $id, int $variant_id)
+{
+    \DB::beginTransaction();
+    
+    try {
+        // Buscar la variante asegurando que pertenezca al producto correcto
+        $variant = ProductVariant::where('id', $variant_id)
+                ->where('product_id', $id)
+                ->firstOrFail();
+
+        // Actualizar la variante con los datos proporcionados
+        $variant->update($request->only(['color', 'size', 'stock_quantity']));
+
+        \DB::commit();
+        return response()->json($variant, 200);
+        
+    } catch (ModelNotFoundException $e) {
+        \DB::rollBack();
+        \Log::error('Variant not found: ' . $e->getMessage(), [
+            'product_id' => $id, 
+            'variant_id' => $variant_id
+        ]);
+        return response()->json(['error' => 'Variant not found'], 404);
+        
+    } catch (\Throwable $th) {
+        \DB::rollBack();
+        \Log::error('Error updating variant: ' . $th->getMessage(), [
+            'product_id' => $id,
+            'variant_id' => $variant_id,
+            'input' => $request->all()
+        ]);
+        return response()->json(['error' => 'Failed to update variant'], 500);
+    }
+}
 
     /**
      * Post Method: Delete Product
      */
     public function destroy(int $id)
     {
-        //Find Product in Database.
-        $product = Product::find($id);
-
-        //Delete the product found.
-        $product->delete();
-        return response()->noContent();
+        
+        try {
+            //Find Product in Database.
+            $product = Product::findOrFail($id);
+    
+            // Eliminar el producto
+            $product->delete();
+    
+            // Confirmar los cambios
+            \DB::commit();
+    
+            return response()->json([
+                'message' => 'Product successfully removed'
+            ], 204);
+        } catch (\Exception $e) {
+            \DB::rollBack();
+            \Log::error('Error deleting product: ' . $e->getMessage());
+    
+            return response()->json([
+                'message' => 'Error deleting product',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
 
     /**

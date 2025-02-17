@@ -6,6 +6,10 @@ use App\Models\Order;
 use Illuminate\Support\Facades\Gate;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class OrderController extends Controller
 {
@@ -14,9 +18,24 @@ class OrderController extends Controller
      */
     public function index()
     {
-        //Get the logged in user's orders, using model relation.
-        $orders = auth()->user()->orders;
-        return response()->json($orders, 200);
+        try {
+            $orders = auth()->user()->orders;
+            
+            if ($orders->isEmpty()) {
+                return response()->json(["message" => "No orders found"], 404);
+            }
+            
+            return response()->json($orders, 200);
+        } catch (Throwable $th) {
+            \Log::error('Error fetching orders: ' . $th->getMessage(), [
+                'stack' => $th->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error fetching orders',
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -31,15 +50,32 @@ class OrderController extends Controller
             'shipping_address' => 'required|string',
         ]);
 
-        $order = Order::create([
-            'user_id' => auth()->id(),
-            'total_amount' => $request->total_amount,
-            'order_status' => $request->order_status,
-            'payment_method' => $request->payment_method,
-            'shipping_address' => $request->shipping_address
-        ]);
+        DB::beginTransaction();
 
-        return response()->json($order, 201);
+        try {
+            $order = Order::create([
+                'user_id' => auth()->id(),
+                'total_amount' => $request->total_amount,
+                'order_status' => $request->order_status,
+                'payment_method' => $request->payment_method,
+                'shipping_address' => $request->shipping_address
+            ]);
+
+            DB::commit();
+
+            return response()->json($order, 201);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            Log::error('Error creating order: ' . $th->getMessage(), [
+                'request_data' => $request->all(),
+                'stack' => $th->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error creating order',
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -48,19 +84,29 @@ class OrderController extends Controller
     public function show(string $id)
     {
         //Get user orders by id
-        $order = Order::with('items')->find($id);
-
-        // Si no existe la orden, devolver error 404
-        if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
+        try {
+            $order = Order::with('items')->findOrFail($id);
+            
+            if (!Gate::allows('user-view-order', $order)) {
+                return response()->json(["message" => "Access denied"], 403);
+            }
+            
+            return response()->json($order, 200);
+        } catch (ModelNotFoundException $e) {
+            return response()->json([
+                'error' => 'Order not found',
+                'message' => $e->getMessage()
+            ], 404);
+        } catch (Throwable $th) {
+            \Log::error('Error fetching order: ' . $th->getMessage(), [
+                'order_id' => $id,
+                'stack' => $th->getTraceAsString()
+            ]);
+            return response()->json([
+                'error' => 'Error fetching order',
+                'message' => $th->getMessage()
+            ], 500);
         }
-
-        //Use Gate so that the logged in user can see only their orders. Gate rules are in the boot method of the AppServiceProviders class
-        if (!Gate::allows('user-view-order', $order)) {
-            return response()->json(['message' => 'Sorry, You dont have access to this resources'], 403);
-        }
-
-        return response()->json($order,200);
     }
 
     /**
@@ -68,25 +114,42 @@ class OrderController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        $order = Order::find($id);
-
-        if (!$order) {
-            return response()->json(['message' => 'Order not found'], 404);
-        }
-
-        // Check permission
-        if (!Gate::allows('user-manage-order', $order)) {
-            return response()->json(['message' => 'Unauthorized action'], 403);
-        }
-
         $request->validate([
             'order_status' => 'nullable|string|in:pending,completed,cancelled',
             'total_amount' => 'nullable|numeric|min:0',
         ]);
 
-        $order->update($request->only(['order_status', 'total_amount']));
+        DB::beginTransaction();
 
-        return response()->json($order, 200);
+        try {
+            $order = Order::findOrFail($id);
+
+            // Verificar permisos
+            if (!Gate::allows('user-manage-order', $order)) {
+                return response()->json(['message' => 'Unauthorized action'], 403);
+            }
+
+            $order->update($request->only(['order_status', 'total_amount']));
+
+            DB::commit();
+
+            return response()->json($order, 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
+            return response()->json(['message' => 'Order not found'], 404);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            Log::error('Error updating order: ' . $th->getMessage(), [
+                'order_id' => $id,
+                'request_data' => $request->all(),
+                'stack' => $th->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error updating order',
+                'message' => $th->getMessage()
+            ], 500);
+        }
     }
 
     /**
@@ -94,19 +157,35 @@ class OrderController extends Controller
      */
     public function destroy(string $id)
     {
-        $order = Order::find($id);
+        DB::beginTransaction();
 
-        if (!$order) {
+        try {
+            $order = Order::findOrFail($id);
+
+            // Verificar permisos
+            if (!Gate::allows('user-manage-order', $order)) {
+                return response()->json(['message' => 'Unauthorized action'], 403);
+            }
+
+            $order->delete();
+
+            DB::commit();
+
+            return response()->json(['message' => 'Order deleted successfully'], 200);
+        } catch (ModelNotFoundException $e) {
+            DB::rollBack();
             return response()->json(['message' => 'Order not found'], 404);
+        } catch (Throwable $th) {
+            DB::rollBack();
+            Log::error('Error deleting order: ' . $th->getMessage(), [
+                'order_id' => $id,
+                'stack' => $th->getTraceAsString()
+            ]);
+
+            return response()->json([
+                'error' => 'Error deleting order',
+                'message' => $th->getMessage()
+            ], 500);
         }
-
-        // Check permission
-        if (!Gate::allows('user-manage-order', $order)) {
-            return response()->json(['message' => 'Unauthorized action'], 403);
-        }
-
-        $order->delete();
-
-        return response()->json(['message' => 'Order deleted successfully'], 200);
     }
 }

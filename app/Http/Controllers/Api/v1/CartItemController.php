@@ -8,21 +8,30 @@ use App\Models\CartItem;
 use App\Models\ShoppingCart;
 use App\Models\ProductVariant;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 
-class CartItemController extends Controller
+    class CartItemController extends Controller
 {
     // Obtener los items del carrito
     public function index(Request $request)
     {
-        $user = $request->user();
-        $cart = ShoppingCart::where('user_id', $user->id)->where('status', 'active')->first();
+        try {
+            return DB::transaction(function () use ($request) {
+                $user = $request->user();
+                $cart = ShoppingCart::where('user_id', $user->id)
+                                    ->where('status', 'active')
+                                    ->first();
 
-        if (!$cart) {
-            return response()->json(['message' => 'No active shopping cart found'], 404);
+                if (!$cart) {
+                    return response()->json(['message' => 'No active shopping cart found'], 404);
+                }
+
+                return response()->json($cart->cartItems);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error retrieving cart items', 'error' => $e->getMessage()], 500);
         }
-
-        return response()->json($cart->cartItems);
     }
 
     // Agregar un producto al carrito
@@ -33,24 +42,35 @@ class CartItemController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $user = $request->user();
-        $cart = ShoppingCart::firstOrCreate(
-            ['user_id' => $user->id, 'status' => 'active'],
-            ['created_date' => now()]
-        );
+        DB::beginTransaction(); // Inicia la transacción
 
-        $variant = ProductVariant::findOrFail($request->variant_id);
+        try {
+            $user = $request->user();
+            $cart = ShoppingCart::firstOrCreate(
+                ['user_id' => $user->id, 'status' => 'active'],
+                ['created_date' => now()]
+            );
 
-        if ($variant->stock_quantity < $request->quantity) {
-            return response()->json(['message' => 'Not enough stock available'], 400);
+            $variant = ProductVariant::lockForUpdate()->findOrFail($request->variant_id);
+
+            if ($variant->stock_quantity < $request->quantity) {
+                DB::rollBack(); // Deshacer cambios si no hay suficiente stock
+                return response()->json(['message' => 'Not enough stock available'], 400);
+            }
+
+            $cartItem = CartItem::updateOrCreate(
+                ['cart_id' => $cart->id, 'variant_id' => $request->variant_id],
+                ['quantity' => $request->quantity, 'unit_price' => $variant->price ?? 0]
+            );
+
+            DB::commit(); // Confirma la transacción si todo sale bien
+            return response()->json($cartItem, 201);
+
+        } catch (\Exception $e) {
+            DB::rollBack(); // Deshacer cambios en caso de error
+            Log::error('Error adding item to cart: ' . $e->getMessage()); // Registrar el error en logs
+            return response()->json(['message' => 'Error adding item to cart', 'error' => $e->getMessage()], 500);
         }
-
-        $cartItem = CartItem::updateOrCreate(
-            ['cart_id' => $cart->id, 'variant_id' => $request->variant_id],
-            ['quantity' => $request->quantity, 'unit_price' => $variant->price ?? 0]
-        );
-
-        return response()->json($cartItem, 201);
     }
 
     // Actualizar la cantidad de un producto en el carrito
@@ -60,24 +80,36 @@ class CartItemController extends Controller
             'quantity' => 'required|integer|min:1',
         ]);
 
-        $cartItem = CartItem::findOrFail($id);
+        try {
+            return DB::transaction(function () use ($request, $id) {
+                $cartItem = CartItem::lockForUpdate()->findOrFail($id);
+                $variant = ProductVariant::lockForUpdate()->findOrFail($cartItem->variant_id);
 
-        $variant = ProductVariant::findOrFail($cartItem->variant_id);
-        if ($variant->stock_quantity < $request->quantity) {
-            return response()->json(['message' => 'Not enough stock available'], 400);
+                if ($variant->stock_quantity < $request->quantity) {
+                    return response()->json(['message' => 'Not enough stock available'], 400);
+                }
+
+                $cartItem->update(['quantity' => $request->quantity]);
+
+                return response()->json($cartItem);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error updating cart item', 'error' => $e->getMessage()], 500);
         }
-
-        $cartItem->update(['quantity' => $request->quantity]);
-
-        return response()->json($cartItem);
     }
 
     // Eliminar un producto del carrito
     public function destroy($id)
     {
-        $cartItem = CartItem::findOrFail($id);
-        $cartItem->delete();
+        try {
+            return DB::transaction(function () use ($id) {
+                $cartItem = CartItem::lockForUpdate()->findOrFail($id);
+                $cartItem->delete();
 
-        return response()->json(['message' => 'Item removed from cart']);
+                return response()->json(['message' => 'Item removed from cart']);
+            });
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error removing cart item', 'error' => $e->getMessage()], 500);
+        }
     }
 }
