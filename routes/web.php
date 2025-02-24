@@ -10,3 +10,6 @@ Route::get('/home', function () {
     return view('home-page'); 
 })->name('home');
 
+Route::get('/shop-page', function () {
+    return view('shop-page'); 
+})->name('shop-page');

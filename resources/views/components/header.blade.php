@@ -77,7 +77,7 @@
     </div>
 
     <!-- Barra de navegación -->
-    <nav class="hidden md:flex justify-center gap-12 bg-gray-200 py-3 border-y border-gray-300 font-poppins">
+    <nav class="hidden md:flex justify-center gap-12 bg-lighterGray py-3 border-y border-gray-300 font-poppins">
       <a href="#" class="text-black hover:text-primary text-lg font-medium">WOMEN</a>
       <a href="#" class="text-black hover:text-primary text-lg font-medium">MEN</a>
       <a href="#" class="text-black hover:text-primary text-lg font-medium">KIDS</a>

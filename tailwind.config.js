@@ -14,6 +14,7 @@ export default {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
                 poppins: ["Poppins", "sans-serif"],
+                volkhov: ["Volkhov", "serif"],
             },
             colors: {
                 primary: "#ED1C24",
