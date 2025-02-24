@@ -13,7 +13,17 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                poppins: ["Poppins", "sans-serif"],
             },
+            colors: {
+                primary: "#ED1C24",
+                black: "#191919",
+                white: "#ffffff", 
+                gray: "#777777",
+                darkerGray: "#cccccc",
+                lighterGray: "#fafafa",
+                secondLighter: "#A86A3D",
+            }
         },
     },
     plugins: [],
