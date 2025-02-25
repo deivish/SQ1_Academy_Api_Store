@@ -15,6 +15,7 @@ export default {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
                 poppins: ["Poppins", "sans-serif"],
                 volkhov: ["Volkhov", "serif"],
+                jost: ['Jost Variable', 'sans-serif'],
             },
             colors: {
                 primary: "#ED1C24",
