@@ -243,6 +243,7 @@ class ProductController extends Controller
             $query->where('name', 'like', '%' . $request->input('name') . '%');
         }
 
+        // Filtro por precio
         if($request->has('min_price')) {
             $query->where('price', '>=', $request->input('min_price'));
         }
@@ -258,6 +259,7 @@ class ProductController extends Controller
             $query->whereJsonContains('other_attributes->' .  $attributes, $value);
         }
 
+        // Filtro por color
         if($request->has('color')) {
             $color = $request->input('color');
             $query->whereHas('variants', function (Builder $q) use ($color) {
@@ -265,10 +267,23 @@ class ProductController extends Controller
             });
         }
 
+        // Filtro por talla
+        $showSize = false;
+        if ($request->has('size')) {
+            $size = $request->input('size');
+            $query->whereHas('variants', function (Builder $q) use ($size) {
+                $q->where('size', $size);
+            });
+            $showSize = true; // Activamos la variable si se ha filtrado por talla
+        }
 
-        $products = $query->paginate();
 
-        return response()->json( $products, 200);
+        $products = $query->paginate(10);
+
+        // dd($products);
+
+
+        return view('shop-page', compact('products', 'showSize'));
     }
 
 }
