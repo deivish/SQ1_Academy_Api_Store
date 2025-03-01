@@ -33,3 +33,7 @@ Route::get('/cart', function () {
 Route::get('/checkout', function () {
     return view('checkout-page'); 
 })->name('checkout');
+
+Route::post('/register', [AuthControlller::class, 'register'])->name('register');
+Route::post('/login', [AuthControlller::class, 'login'])->name('login');
+Route::post('/logout', [AuthControlller::class, 'logout'])->name('logout')->middleware('auth');
